@@ -13,9 +13,9 @@ usersAPI.get("/api/users", async (req, res) => {
     const PerPage = req.query.PerPage || 3
     if (PerPage < 100) {
       const users = await User.find({}, "username firstName lastName").skip(page * PerPage).limit(PerPage)
-      res.send(users);
+      return res.send(users);
     }
-    res.status(400).send('The data you are trying to request in a single request is too large.')
+    res.status(400).send('The data you are trying to request in a single request is to large')
   } catch (error) {
     logger.error(error);
     res.status(500).send(error.message);
