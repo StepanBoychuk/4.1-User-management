@@ -2,32 +2,35 @@ const { Router } = require("express");
 const logger = require("./../../logger.js");
 const User = require("./../../models/User.js");
 const signup = require("./../../services/signup.js");
-const userScheme = require("../../validation/userValidation.js");
+const update = require("./../../services/update.js")
+const { createValidator, updateValidator } = require('./../../validation/userValidation.js')
 const auth = require("./../../services/auth.js");
 
 const usersAPI = Router();
 
 usersAPI.get("/api/users", async (req, res) => {
   try {
-    const page = req.query.page || 0
-    const PerPage = req.query.PerPage || 3
-    if (PerPage < 100) {
-      const users = await User.find({}, "username firstName lastName").skip(page * PerPage).limit(PerPage)
-      return res.send(users);
+    const page = req.query.page || 0;
+    const perPage = req.query.perPage || 3;
+    if (perPage > 100) {
+      res
+        .status(400)
+        .send(
+          "The data you are trying to request in a single request is to large"
+        );
     }
-    res.status(400).send('The data you are trying to request in a single request is to large')
+    const users = await User.find({}, "username firstName lastName")
+      .skip(page * perPage)
+      .limit(perPage);
+    return res.send(users);
   } catch (error) {
     logger.error(error);
-    res.status(500).send(error.message);
+    res.status(400).send(error.message);
   }
 });
 
-usersAPI.post("/api/users", async (req, res) => {
+usersAPI.post("/api/users", createValidator, async (req, res) => {
   try {
-    const { error } = userScheme.validate(req.body);
-    if (error) {
-      return res.status(400).send(error.message);
-    }
     await signup(req.body);
     res.status(201).send(req.body);
   } catch (error) {
@@ -36,22 +39,10 @@ usersAPI.post("/api/users", async (req, res) => {
   }
 });
 
-usersAPI.put("/api/users/", auth, async (req, res) => {
+usersAPI.put("/api/users/", auth, updateValidator, async (req, res) => {
   try {
-    const { error } = userScheme.validate(req.body);
-    if (error) {
-      return res.send(error.message);
-    }
-    await User.findOneAndUpdate(
-      { username: req.auth.user },
-      {
-        username: req.body.username,
-        firstName: req.body.firstName,
-        lastName: req.body.lastName,
-        password: req.body.password
-      }
-    );
-    res.status(201).send(req.body);
+    await update(req.auth.user, req.body)
+    res.status(201).send(req.body)
   } catch (error) {
     logger.error(error);
     res.status(500).send(error);

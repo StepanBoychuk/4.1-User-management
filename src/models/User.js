@@ -25,6 +25,14 @@ userSchema.pre('save', async function (next) {
     next()
 })
 
+userSchema.pre('findOneAndUpdate', async function (next) {
+    const update = this.getUpdate();
+    const password = await hashPassword(update.password)
+    update.password = password
+    next()
+})
+
+
 const User = model("User", userSchema, 'users')
 
 module.exports = User

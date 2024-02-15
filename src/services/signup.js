@@ -1,5 +1,4 @@
 const User = require("./../models/User.js");
-const hashPassword = require("./../services/hashPassword.js");
 
 const signup = async (data) => {
   const user = new User({
