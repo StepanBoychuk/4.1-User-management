@@ -16,8 +16,8 @@ const createUser = {
   },
 };
 
-const createValidator = async (req, res, next) => {
-  const { error } = Joi.object(createUser).validate(req.body);
+const validation = async (validation, req, res, next) => {
+  const { error } = Joi.object(validation).validate(req.body);
   if (error) {
     return res.status(400).send(error.message);
   }
@@ -30,19 +30,10 @@ const createValidator = async (req, res, next) => {
   next();
 };
 
-const updateValidator = async (req, res, next) => {
-  const { error } = Joi.object(updateUser).validate(req.body);
-  if (error) {
-    return res.status(400).send(error.message);
-  }
-  const user = await User.findOne({ username: req.body.username });
-  if (user) {
-    return res
-      .status(400)
-      .send(`Nickname ${req.body.username} is already taken`);
-  }
-  next();
-};
+const createValidator = async (req, res, next) =>
+  await validation(createUser, req, res, next);
+const updateValidator = async (req, res, next) =>
+  await validation(updateUser, req, res, next);
 
 module.exports = {
   createValidator,

@@ -1,6 +1,6 @@
 const { Router } = require("express");
 const logger = require("./../../logger.js");
-const User = require("./../../models/User.js");
+const getUsersList = require('./../../services/getUsersList.js')
 const signup = require("./../../services/signup.js");
 const update = require("./../../services/update.js")
 const { createValidator, updateValidator } = require('./../../validation/userValidation.js')
@@ -19,10 +19,8 @@ usersAPI.get("/api/users", async (req, res) => {
           "The data you are trying to request in a single request is to large"
         );
     }
-    const users = await User.find({}, "username firstName lastName")
-      .skip(page * perPage)
-      .limit(perPage);
-    return res.send(users);
+
+    return res.send(await getUsersList(page, perPage));
   } catch (error) {
     logger.error(error);
     res.status(400).send(error.message);
